@@ -6,9 +6,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class LibraryLoaderProxy implements LibraryLoader {
-  private volatile URI pathToBook = null;
+  private AtomicReference<URI> pathToBook = null;
   private final URI prevPath = Files.createTempFile("prev", "file").toUri();
   private static final String FILE_URL = "http://speedtest.ftp.otenet.gr/files/test10Mb.db";
   private static final int CONNECT_TIMEOUT = 10000;
@@ -29,7 +30,7 @@ public class LibraryLoaderProxy implements LibraryLoader {
                   tempFile.toFile(),
                   CONNECT_TIMEOUT,
                   READ_TIMEOUT);
-          this.pathToBook = tempFile.toUri();
+          this.pathToBook = new AtomicReference<>(tempFile.toUri());
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -42,6 +43,6 @@ public class LibraryLoaderProxy implements LibraryLoader {
       return prevPath;
     }
 
-    return this.pathToBook;
+    return this.pathToBook.get();
   }
 }
